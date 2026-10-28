@@ -1,0 +1,49 @@
+# Dependências e caches de ferramentas
+node_modules/
+.npm-cache/
+.cache/
+.eslintcache
+.prettiercache
+
+# Saídas geradas por Next.js e TypeScript
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Configuração local e segredos; manter somente o modelo sem valores reais
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Banco do workspace, arquivos de execução e backups locais
+.local/
+logs/
+*.log
+*.log.*
+*.backup
+*.dump
+*.sql.gz
+
+# Relatórios gerados de testes e cobertura
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Configurações pessoais e arquivos do sistema operacional
+.vscode/
+.idea/
+.codex/
+.aws/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Código, testes, package-lock.json, AGENTS.md, migrações em drizzle/
+# e evidências sanitizadas em docs/evidence/ devem ser versionados.

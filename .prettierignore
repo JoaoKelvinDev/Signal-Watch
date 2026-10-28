@@ -1,0 +1,8 @@
+node_modules
+.next
+.local
+.npm-cache
+package-lock.json
+drizzle/meta
+AGENTS.md
+next-env.d.ts

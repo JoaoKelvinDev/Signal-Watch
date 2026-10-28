@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-28T16:39:45.584Z",
+  "status": "passed",
+  "ignoredPathsChecked": 18,
+  "versionablePathsChecked": 15,
+  "publishableFilesReviewed": 74,
+  "secretPatterns": ["private_key", "github_token", "aws_access_key", "openai_key"],
+  "findings": [],
+  "rootRepositoryCreated": false,
+  "commitOrPushPerformed": false
+}

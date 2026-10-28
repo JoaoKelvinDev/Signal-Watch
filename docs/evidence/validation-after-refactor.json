@@ -1,0 +1,108 @@
+{
+  "recordedAt": "2026-10-28T16:39:45.652Z",
+  "scope": "validation_after_folder_reorganization_and_authorized_corrections",
+  "status": "passed_with_documented_limits",
+  "checks": {
+    "lint": "passed",
+    "types": "passed",
+    "nextBuild": "passed",
+    "formatting": "passed",
+    "drizzleSchema": "no_changes",
+    "rootRepositoryInitialized": false,
+    "commitOrPushPerformed": false
+  },
+  "tests": {
+    "unit": 67,
+    "database": 23,
+    "uniqueTotal": 90,
+    "windowsPostgres": "passed",
+    "linuxDockerPostgres": "same_90_tests_passed"
+  },
+  "dependencies": {
+    "npmAuditKnownVulnerabilities": 0,
+    "lockfileSha256": "a20cc285b12076e4f546f130cac5411ce9e16800b94b34e7ca11f4cdaca3a79b"
+  },
+  "corrections": [
+    "DNS_wait_obeys_abort_and_shared_15_second_timeout",
+    "cancelled_or_late_DNS_cannot_open_socket",
+    "non_global_192.88.99.0_24_blocked",
+    "error_response_streams_closed_and_errors_handled",
+    "Docker_install_build_runtime_owned_by_non_root_node_user"
+  ],
+  "regressionEvidence": {
+    "failuresReproducedBeforeFix": 4,
+    "finalRegressionSuite": "passed",
+    "dnsAndConnectionShareBudget": true
+  },
+  "contracts": {
+    "githubReleases": "passed_without_required_token",
+    "hackerNews": "passed_without_credentials",
+    "redditAndLLM": "disabled"
+  },
+  "http": {
+    "local": {
+      "checkedAt": "2026-10-28T16:38:01.330Z",
+      "status": "success",
+      "officialItems": 1,
+      "communityItems": 75,
+      "communityPages": 15,
+      "linksValidated": 75,
+      "search": "Transformers",
+      "filters": "passed",
+      "invalidParameters": "400",
+      "readiness": "200"
+    },
+    "docker": {
+      "checkedAt": "2026-10-28T16:34:19.456Z",
+      "status": "success",
+      "officialItems": 1,
+      "communityItems": 25,
+      "communityPages": 5,
+      "linksValidated": 25,
+      "search": "Transformers",
+      "filters": "passed",
+      "invalidParameters": "400",
+      "readiness": "200"
+    },
+    "unsupportedWriteStatus": 405,
+    "environmentFileStatus": 404,
+    "publicBundleServerReferences": 0
+  },
+  "docker": {
+    "isolatedProject": "radar-validation",
+    "realCollectedReleaseItems": 1,
+    "realCollectedHackerNewsItems": 25,
+    "runtimeUid": 1000,
+    "workspaceWritableByNode": true,
+    "environmentFileInImage": false,
+    "localDatabaseInImage": false,
+    "persistedCommunityIdsBeforeRecreation": 25,
+    "persistedCommunityIdsAfterRecreation": 25,
+    "testContainersStopped": true,
+    "testVolumePreserved": true
+  },
+  "gitignore": {
+    "checkedAt": "2026-10-28T16:39:45.584Z",
+    "status": "passed",
+    "ignoredPathsChecked": 18,
+    "versionablePathsChecked": 15,
+    "publishableFilesReviewed": 74,
+    "secretPatterns": ["private_key", "github_token", "aws_access_key", "openai_key"],
+    "findings": [],
+    "rootRepositoryCreated": false,
+    "commitOrPushPerformed": false
+  },
+  "runtime": {
+    "localUrl": "http://127.0.0.1:3000",
+    "launcher": "npm.cmd run local",
+    "siteAndWorkerRestarted": true,
+    "originalWorkspaceDatabasePreserved": true
+  },
+  "limits": [
+    "No_connected_browser_for_interactive_or_visual_QA",
+    "No_OS_image_package_security_scan",
+    "Pattern_secret_scan_is_not_exhaustive",
+    "Remaining_MVP_features_not_completed",
+    "No_public_deployment_or_external_cost_assessment"
+  ]
+}

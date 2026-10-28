@@ -1,0 +1,109 @@
+﻿{
+  "recordedAt": "2026-10-28T16:38:02.089Z",
+  "sources": [
+    {
+      "slug": "hacker-news",
+      "state": "active",
+      "verified_at": "2026-10-28 15:28:32.139+00",
+      "last_success_at": "2026-10-28 16:33:56.455+00",
+      "last_error": "WINDOW_TRUNCATED",
+      "quota": {},
+      "stored_items": 75
+    },
+    {
+      "slug": "huggingface-transformers",
+      "state": "active",
+      "verified_at": "2026-10-28 15:28:18.767+00",
+      "last_success_at": "2026-10-28 16:28:33.183+00",
+      "last_error": "WINDOW_TRUNCATED",
+      "quota": {
+        "limit": "60",
+        "reset": "1793208230",
+        "remaining": "52"
+      },
+      "stored_items": 1
+    }
+  ],
+  "runs": [
+    {
+      "slug": "huggingface-transformers",
+      "started_at": "2026-10-28 15:28:33.849018+00",
+      "finished_at": "2026-10-28 15:28:34.576+00",
+      "status": "success",
+      "received": 1,
+      "inserted": 1,
+      "duplicates": 0,
+      "error": null
+    },
+    {
+      "slug": "hacker-news",
+      "started_at": "2026-10-28 15:28:34.579372+00",
+      "finished_at": "2026-10-28 15:28:45.787+00",
+      "status": "success",
+      "received": 25,
+      "inserted": 25,
+      "duplicates": 0,
+      "error": null
+    },
+    {
+      "slug": "huggingface-transformers",
+      "started_at": "2026-10-28 15:33:52.107509+00",
+      "finished_at": "2026-10-28 15:33:53.645+00",
+      "status": "success",
+      "received": 1,
+      "inserted": 0,
+      "duplicates": 1,
+      "error": null
+    },
+    {
+      "slug": "huggingface-transformers",
+      "started_at": "2026-10-28 15:57:17.765989+00",
+      "finished_at": "2026-10-28 15:57:19.374+00",
+      "status": "success",
+      "received": 1,
+      "inserted": 0,
+      "duplicates": 1,
+      "error": null
+    },
+    {
+      "slug": "hacker-news",
+      "started_at": "2026-10-28 16:00:30.494051+00",
+      "finished_at": "2026-10-28 16:00:43.763+00",
+      "status": "success",
+      "received": 25,
+      "inserted": 25,
+      "duplicates": 0,
+      "error": null
+    },
+    {
+      "slug": "huggingface-transformers",
+      "started_at": "2026-10-28 16:13:07.28211+00",
+      "finished_at": "2026-10-28 16:13:08.893+00",
+      "status": "success",
+      "received": 1,
+      "inserted": 0,
+      "duplicates": 1,
+      "error": null
+    },
+    {
+      "slug": "huggingface-transformers",
+      "started_at": "2026-10-28 16:28:31.564431+00",
+      "finished_at": "2026-10-28 16:28:33.184+00",
+      "status": "success",
+      "received": 1,
+      "inserted": 0,
+      "duplicates": 1,
+      "error": null
+    },
+    {
+      "slug": "hacker-news",
+      "started_at": "2026-10-28 16:33:44.437744+00",
+      "finished_at": "2026-10-28 16:33:56.458+00",
+      "status": "success",
+      "received": 25,
+      "inserted": 25,
+      "duplicates": 0,
+      "error": null
+    }
+  ]
+}

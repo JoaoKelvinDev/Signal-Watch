@@ -1,0 +1,36 @@
+{
+  "scope": "static_structure_review_only",
+  "filesMoved": 31,
+  "importsAdjusted": 56,
+  "syntaxFilesInspected": 46,
+  "relativeImportsInspected": 84,
+  "entryAndStylePathsInspected": 13,
+  "handlerBodies": [
+    {
+      "handler": "src/api/feed/handler.ts",
+      "bodyUnchanged": true
+    },
+    {
+      "handler": "src/api/health/readiness.ts",
+      "bodyUnchanged": true
+    }
+  ],
+  "findings": [],
+  "gitignore": {
+    "reviewed": "manually",
+    "matchingNotExecuted": true,
+    "gitRepositoryInitialized": false
+  },
+  "deferredUntilUserApproval": [
+    "lint",
+    "typecheck",
+    "build",
+    "unit_tests",
+    "database_tests",
+    "http_tests",
+    "online_contracts",
+    "dependency_audit",
+    "dynamic_security_review",
+    "process_restart"
+  ]
+}
