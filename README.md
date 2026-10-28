@@ -1,34 +1,78 @@
 # Radar de IA e Tecnologia
 
-Primeira etapa do projeto orientado por [AGENTS.md](AGENTS.md): base de coleta local com dois conectores reais, PostgreSQL, fila e worker independente do navegador. **MVP ainda incompleto:** feed, eventos editoriais, filtros, busca, favoritos e administração ficam para a próxima etapa autorizada. A página atual informa esse estado e não contém notícias fictícias.
+Aplicação local para acompanhar lançamentos de IA e discussões da comunidade, consultar o acervo coletado e verificar a origem e as datas de cada item. O projeto usa dados reais de duas integrações; **não promete cobertura ampla da internet e ainda não é um MVP completo nem um serviço publicado**.
 
-## Requisitos e setup
+## Estado atual
 
-Node.js 22.12+ (testado em 22.20.0), npm e PostgreSQL 18. Lockfile versionado. No Windows, usar `npm.cmd` se a política do PowerShell bloquear `npm.ps1`; não é necessário mudar a política.
+### Implementado
+
+- Feed cronológico com paginação por cursor, busca no acervo e filtros por tema, origem e canal (oficial ou comunidade).
+- Procedência, links originais, datas de publicação/coleta e estado da última coleta exibidos na interface.
+- Coleta independente do navegador, com worker, fila persistente, tentativas, leases recuperáveis e gravação idempotente em PostgreSQL.
+- Classificação editorial conservadora: releases do repositório verificado são apresentadas como anúncios oficiais; Hacker News permanece separado como conteúdo comunitário.
+- Tema claro/escuro, estados de carregamento/erro/vazio e endpoint de prontidão.
+- Ambiente local e Docker Compose; as validações registradas incluem build, testes, contratos reais das integrações e fluxo de coleta persistido. Consulte [docs/implementation-status.md](docs/implementation-status.md) para escopo e evidências.
+
+### Ainda pendente
+
+- Mais fontes verificadas e maior cobertura de empresas e produtos.
+- Página própria de evento com cobertura relacionada e histórico editorial navegável.
+- Filtros por empresa, tipo de evento, idioma, período e status editorial.
+- Favoritos, itens lidos e preferências.
+- Painel administrativo autenticado para fontes, saúde e reprocessamento.
+- Implantação pública e validação de operação/backup em produção.
+
+Não há conteúdo de demonstração disfarçado de notícia real. Resumos não são inventados quando os metadados coletados não dão informação suficiente.
+
+## Fontes disponíveis
+
+| Integração                                       | Papel no produto                           | Limites atuais                                                         |
+| ------------------------------------------------ | ------------------------------------------ | ---------------------------------------------------------------------- |
+| GitHub REST Releases — Hugging Face Transformers | Releases do projeto associado e verificado | Janela e páginas limitadas; não coleta corpos completos das releases   |
+| Hacker News API oficial                          | Descoberta de discussões da comunidade     | Sinal comunitário, não confirmação; a janela pode deixar itens de fora |
+
+As fontes, documentação consultada, condições e limitações estão em [docs/sources.md](docs/sources.md). Reddit, arXiv, feeds de blogs e provedores licenciados não estão implementados/ativos. Não é necessária chave de LLM; não há integração de LLM.
+
+## Requisitos
+
+- Node.js 22.12 ou superior e npm.
+- PostgreSQL 18 para execução local, ou Docker com Docker Compose.
+- No Windows, use `npm.cmd` caso a política do PowerShell bloqueie `npm.ps1`; não é necessário alterar a política.
+
+## Executar localmente
+
+Instale dependências e crie sua configuração local:
 
 ```powershell
 npm.cmd ci
 Copy-Item .env.example .env
 ```
 
-Preencha `POSTGRES_PASSWORD` e `DATABASE_URL` no `.env` com valores locais. Codifique caracteres especiais da senha na URL. Sem token GitHub, LLM ou Reddit, o núcleo funciona.
+Configure `POSTGRES_PASSWORD` e `DATABASE_URL` no `.env` com os dados do PostgreSQL que você controla. Codifique caracteres especiais da senha na URL. Não use credenciais reais em exemplos, commits ou logs. O `.env` é ignorado pelo Git.
 
-Para Docker Compose, use host **db** na DATABASE_URL. Para executar scripts no computador com banco via porta publicada, use host **127.0.0.1**. O `.env` é ignorado no Git e no build Docker. Nunca usar senha de exemplo em implantação real.
+Se estiver usando o PostgreSQL do Compose, inicie o banco e use o host `db` na `DATABASE_URL` para processos dentro de contêineres:
 
 ```powershell
 docker compose up -d db
-# Após configurar DATABASE_URL para o banco local desejado:
 npm.cmd run db:migrate
 npm.cmd run db:seed
-# Faz chamadas externas reais; ativa fontes somente após validar resposta/configuração.
-npm.cmd run test:online -- --activate
-npm.cmd run collect:once
-npm.cmd run worker
 ```
 
-O último comando continua agendando enquanto o processo estiver em execução. Não depende de página aberta. `collect:once` drena os jobs devidos e termina, sem aguardar retries futuros. O seed é idempotente e não sobrescreve configuração existente. Scripts leem `.env` pelo suporte nativo do Node; variáveis já definidas no processo têm precedência.
+Para executar scripts no Windows diretamente no computador, a URL deve usar `127.0.0.1` e a porta publicada do banco.
 
-Para aplicação e worker em contêineres, configure `DATABASE_URL` com host `db`, depois:
+O teste online faz chamadas reais às fontes; `--activate` ativa as integrações apenas depois da validação:
+
+```powershell
+npm.cmd run test:online -- --activate
+npm.cmd run build
+npm.cmd run local
+```
+
+`npm run local` aplica migrações e a projeção editorial, inicia o site em `http://127.0.0.1:3000` e mantém a coleta em processo separado. Exige um build prévio e um banco configurado. Para apenas processar os jobs devidos uma vez, use `npm.cmd run collect:once`; para manter o worker agendando e coletando continuamente sem iniciar o site, use `npm.cmd run worker`.
+
+## Executar com Docker Compose
+
+Configure o `.env` com a `DATABASE_URL` usando o host `db`. O Compose aplica migrações e inicia banco, aplicação e worker:
 
 ```powershell
 docker compose up --build -d
@@ -37,47 +81,47 @@ docker compose run --rm worker npm run test:online -- --activate
 docker compose logs -f worker
 ```
 
-Compose aplica migrações antes de iniciar app/worker e mantém volume persistente. O build da imagem e o fluxo Compose ainda não foram executados: daemon Docker indisponível nesta sessão. A imagem contém ferramentas de desenvolvimento para este ambiente local; endurecimento de implantação fica pendente. Sem publicação ou contas criadas.
+O volume do PostgreSQL preserva os dados entre reinícios. O fluxo Compose e a coleta em contêiner foram validados conforme [o relatório de implementação](docs/implementation-status.md); isso não equivale a uma implantação pública ou a uma garantia operacional em produção.
 
-## Validação
+## Verificações
 
 ```powershell
-npm.cmd run lint    
+npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd test
 npm.cmd run build
 npm.cmd run format:check
 ```
 
-Testes de banco aplicam migração duas vezes e limpam tabelas: use **somente banco descartável** cujo nome seja `radar_test` ou `radar_test_*`. O programa recusa outros nomes e exige opt-in separado:
+Os testes de banco podem alterar e limpar tabelas: use exclusivamente uma base descartável cujo nome seja `radar_test` ou `radar_test_*`. É necessário ativar explicitamente a permissão:
 
 ```powershell
 $env:ALLOW_DB_TESTS='1'
 $env:TEST_DATABASE_URL='postgresql://USUARIO:SENHA@127.0.0.1:5432/radar_test'
 npm.cmd run test:db
-# Rede real, separado da suíte offline:
-npm.cmd run test:online
 ```
 
-Fixtures dos testes são isoladas do catálogo de produção. Não existe modo de demonstração no site. Cobertura detalhada e resultados em [docs/implementation-status.md](docs/implementation-status.md).
+Testes online são separados da suíte offline e precisam de rede. Resultados já executados e respectivas limitações estão em [docs/implementation-status.md](docs/implementation-status.md) e em [docs/evidence/](docs/evidence/).
 
 ## Operação e segurança
 
-`GET /api/health/ready` verifica conexão e tabela essencial; retorna 503 sem detalhes de conexão em falhas. Não há endpoint público de coleta nem painel administrativo sem proteção: essas rotas ainda não existem. A aplicação nunca consulta provedores ao abrir páginas.
+- A interface lê os dados persistidos pela API própria; abrir o site não consulta os provedores.
+- A coleta contínua disponível no fluxo validado é feita pelo worker, independentemente de uma aba aberta.
+- `GET /api/health/ready` verifica dependências essenciais sem expor detalhes de conexão.
+- A área administrativa autenticada ainda não existe. A rota `POST /api/cron/ingest` presente no estado de trabalho atual exige `CRON_SECRET`, mas não há agenda configurada em `vercel.json`; essa alternativa não está pronta como coleta agendada.
+- O transporte dos adapters aceita apenas hosts e caminhos conhecidos em HTTPS, bloqueia destinos não públicos, rejeita redirecionamentos e limita tempo e tamanho da resposta. URLs encontradas em notícias não são acessadas.
+- Segredos ficam no servidor. Não configure credenciais em variáveis `NEXT_PUBLIC_*`.
+- Custos de hospedagem, banco gerenciado e serviços externos não foram verificados; nenhum serviço foi contratado.
 
-Os dois adapters permitem apenas hosts e caminhos fixos em HTTPS. O transporte resolve DNS a cada requisição, recusa endereços reservados, fixa IPv4 público no socket, rejeita redirecionamentos, limita resposta a 2 MiB e requisição a 15 segundos. O ciclo possui prazo de 90 segundos, dentro do lease de 180 segundos. Não existe entrada para URLs de feeds arbitrários nesta fase. Não há parser XML, execução de Markdown/HTML ou envio de dados a LLM.
+### Backup e restauração
 
-Lease recuperável e token impedem commit de worker antigo. Cursor e metadados são persistidos na mesma transação. Cinco tentativas por job, backoff exponencial e jitter; quota pode impor espera maior. Último sucesso difere de última tentativa. Truncamento de janela fica visível no estado da fonte. Logs contêm somente códigos de erro controlados, slug e contagens.
-
-Backup de um banco configurado (credenciais via mecanismo seguro do PostgreSQL, nunca no comando):
+Execute `pg_dump` e `pg_restore` em uma instalação PostgreSQL apropriada, usando um mecanismo seguro para autenticação; não coloque senhas diretamente no comando:
 
 ```text
 pg_dump --format=custom --file=radar.backup --dbname=radar
 pg_restore --dbname=radar_restore --no-owner radar.backup
 ```
 
-Use ambiente de restauração separado e valide contagens/migrações antes de trocar o banco. Migrações ficam em `drizzle/` e são aplicadas por `db:migrate`; não existe rollback automático. Volume Docker não substitui backup. Retenção automatizada e restauração de backup ainda não foram validadas.
+Restaure primeiro em uma base separada e valide os dados antes de qualquer troca. O volume Docker não substitui backup; restauração automatizada ainda não foi validada. Migrações ficam em `drizzle/` e não possuem rollback automático.
 
-O PostgreSQL temporário usado nos testes desta sessão fica em `.local/postgres`, porta 55439, com autenticação trust limitada a loopback. É exclusivo de testes e foi desligado ao fim da etapa; não usar essa configuração em produção. Nenhum serviço PostgreSQL existente foi iniciado ou alterado.
-
-Veja [arquitetura](docs/architecture.md), [fontes e termos](docs/sources.md) e [estado da implementação](docs/implementation-status.md).
+As decisões e os limites das camadas estão em [docs/architecture.md](docs/architecture.md); o registro de testes e pendências está em [docs/implementation-status.md](docs/implementation-status.md).
