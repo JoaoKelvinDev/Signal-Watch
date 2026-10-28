@@ -436,9 +436,9 @@ export function RadarFeed() {
                 <span className="accent-dot" /> IA EM PRIMEIRO LUGAR
               </p>
               <h1>
-                Acompanhe o que
+                Lançamentos,
                 <br />
-                muda em <span>inteligência artificial.</span>
+                pesquisas e  <span>discussões sobre IA</span>
               </h1>
               <p className="intro-description">
                 Lançamentos e discussões, com a origem de cada informação.
