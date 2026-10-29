@@ -1,4 +1,4 @@
-import { openDatabase } from "../../backend/database/client";
+import { getRequestDatabase } from "../../backend/database/request-client";
 import { InvalidFeedParameters, parseFeedParameters } from "../../backend/feed/parameters";
 import { readFeed } from "../../backend/feed/repository";
 import { allowFeedRequest } from "./rate-limit";
@@ -15,11 +15,10 @@ export async function GET(request: Request) {
       },
     );
   }
-  let database: ReturnType<typeof openDatabase> | undefined;
   try {
     const parameters = parseFeedParameters(new URL(request.url).searchParams);
-    database = openDatabase();
-    return Response.json(await readFeed(database.db, parameters), { headers });
+    const db = getRequestDatabase();
+    return Response.json(await readFeed(db, parameters), { headers });
   } catch (error) {
     if (error instanceof InvalidFeedParameters) {
       return Response.json(
@@ -31,7 +30,5 @@ export async function GET(request: Request) {
       { error: "As notícias estão temporariamente indisponíveis. Tente novamente." },
       { status: 503, headers },
     );
-  } finally {
-    await database?.close();
   }
 }

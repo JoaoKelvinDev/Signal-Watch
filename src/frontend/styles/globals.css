@@ -11,6 +11,79 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: #0d110f;
 }
+.utility-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  color: #e4e9e1;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  min-height: 100vh;
+  background: #0d110f;
+}
+.utility-page.utility-light {
+  color: #19251e;
+  background: #f4f6f0;
+}
+.utility-page section {
+  padding: 20px 0;
+  border-bottom: 1px solid #344137;
+}
+.utility-page form,
+.advanced-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px 0;
+}
+.utility-page label,
+.advanced-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.utility-page input,
+.utility-page select,
+.advanced-grid input,
+.advanced-grid select {
+  color: #e4e9e1;
+  background: #19251e;
+  border: 1px solid #647568;
+  border-radius: 5px;
+  padding: 8px;
+  max-width: 100%;
+}
+.utility-page button,
+.item-actions button {
+  color: #e4e9e1;
+  background: #25372a;
+  border: 1px solid #647568;
+  border-radius: 5px;
+  padding: 8px 12px;
+}
+.utility-page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+.advanced-filters {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #647568;
+  border-radius: 8px;
+}
+.advanced-filters summary {
+  cursor: pointer;
+}
+.advanced-filters p {
+  font-size: 13px;
+  line-height: 1.6;
+}
 button,
 input,
 select {

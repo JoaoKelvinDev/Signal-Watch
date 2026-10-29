@@ -67,7 +67,8 @@ assert.equal((await fetch(`${base}/api/feed?cursor=invalid`)).status, 400);
 assert.equal((await fetch(`${base}/api/feed?unknown=1`)).status, 400);
 assert.equal((await fetch(`${base}/api/health/ready`)).status, 200);
 const html = await (await fetch(base)).text();
-assert.ok(html.includes("Acompanhe o que"));
+assert.match(html, /<html[^>]+lang="pt-BR"/);
+assert.match(html, /<main[^>]+id="noticias"/);
 console.log(
   JSON.stringify(
     {

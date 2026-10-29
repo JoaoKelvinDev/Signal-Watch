@@ -74,6 +74,7 @@ export function classify(item: EditorialItem, source: EditorialSource) {
     companies: transformers
       ? ["Hugging Face"]
       : companies.filter(([, expression]) => expression.test(item.title)).map(([name]) => name),
+    topics: classifyTopics(item.title),
     products: transformers ? ["Transformers"] : [],
     version,
     type: source.type === "github_releases" ? "release" : "discussion",
@@ -92,4 +93,21 @@ export function classify(item: EditorialItem, source: EditorialSource) {
 
 export function semanticHash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+export function classifyTopics(title: string): string[] {
+  const patterns: [string, RegExp][] = [
+    ["models", /model|gpt|claude|gemini|transformers/i],
+    ["agents", /agent/i],
+    ["programming", /cod(e|ing)|program|sdk/i],
+    ["image", /image|imagem|diffusion/i],
+    ["audio", /audio|voice|speech/i],
+    ["video", /video/i],
+    ["research", /research|paper|study|pesquisa/i],
+    ["infrastructure", /gpu|inference|infrastructure|datacenter/i],
+    ["security", /security|vulnerab|seguran/i],
+    ["pricing", /pric(e|ing)|cost|preço/i],
+    ["api", /\bapi\b/i],
+  ];
+  return patterns.filter(([, pattern]) => pattern.test(title)).map(([topic]) => topic);
 }

@@ -1,11 +1,25 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { topics, eventTypes, editorialStatuses } from "../../shared/catalog";
 
 const parameterSchema = z
   .object({
     tab: z.enum(["official", "community"]).default("official"),
     category: z.enum(["ai", "technology", "all"]).default("ai"),
     q: z.string().trim().max(120).default(""),
+    topic: z.enum(topics).optional(),
+    company: z.string().trim().min(1).max(80).optional(),
+    type: z.enum(eventTypes).optional(),
+    status: z.enum(editorialStatuses).optional(),
+    language: z
+      .string()
+      .regex(/^(unknown|[a-z]{2}(?:-[A-Z]{2})?)$/)
+      .optional(),
+    origin: z.enum(["official", "community"]).optional(),
+    from: z.iso.datetime({ offset: true }).optional(),
+    to: z.iso.datetime({ offset: true }).optional(),
+    id: z.uuid().optional(),
+    sort: z.enum(["recent", "relevance"]).optional(),
     source: z
       .string()
       .max(80)
@@ -23,6 +37,7 @@ const cursorSchema = z
     at: z.iso.datetime({ precision: 6 }),
     id: z.uuid(),
     scope: z.string().regex(/^[a-f0-9]{32}$/),
+    rank: z.number().int().min(0).max(6).optional(),
   })
   .strict();
 
@@ -36,15 +51,24 @@ export class InvalidFeedParameters extends Error {
 }
 
 export function filterScope(parameters: FeedParameters): string {
-  const { tab, category, q, source, pageSize } = parameters;
-  return createHash("sha256")
-    .update(JSON.stringify({ tab, category, q, source, pageSize }))
-    .digest("hex")
-    .slice(0, 32);
+  const { cursor: _cursor, ...filters } = parameters;
+  void _cursor;
+  return createHash("sha256").update(JSON.stringify(filters)).digest("hex").slice(0, 32);
 }
 
-export function encodeCursor(at: string, id: string, parameters: FeedParameters): string {
-  const cursor = cursorSchema.parse({ version: 1, at, id, scope: filterScope(parameters) });
+export function encodeCursor(
+  at: string,
+  id: string,
+  parameters: FeedParameters,
+  rank?: number,
+): string {
+  const cursor = cursorSchema.parse({
+    version: 1,
+    at,
+    id,
+    scope: filterScope(parameters),
+    ...(rank === undefined ? {} : { rank }),
+  });
   return Buffer.from(JSON.stringify(cursor)).toString("base64url");
 }
 
@@ -57,6 +81,8 @@ export function decodeCursor(encoded: string, parameters: FeedParameters): FeedC
     if (buffer.toString("base64url") !== encoded) throw new InvalidFeedParameters();
     const cursor = cursorSchema.parse(JSON.parse(buffer.toString("utf8")) as unknown);
     if (cursor.scope !== filterScope(parameters)) throw new InvalidFeedParameters();
+    if (parameters.sort === "relevance" && cursor.rank === undefined)
+      throw new InvalidFeedParameters();
     return cursor;
   } catch {
     throw new InvalidFeedParameters();
@@ -69,6 +95,8 @@ export function parseFeedParameters(search: URLSearchParams): FeedParameters {
       if (search.getAll(key).length !== 1) throw new InvalidFeedParameters();
     }
     const parameters = parameterSchema.parse(Object.fromEntries(search));
+    if (parameters.from && parameters.to && Date.parse(parameters.from) > Date.parse(parameters.to))
+      throw new InvalidFeedParameters();
     if (parameters.cursor) decodeCursor(parameters.cursor, parameters);
     return parameters;
   } catch {

@@ -20,6 +20,14 @@ export function checkStatus(
     : 0;
   const resetMs = Number(headers["x-ratelimit-reset"] ?? 0) * 1000 - now;
   if (status === 429 || (status === 403 && (headers["x-ratelimit-remaining"] === "0" || retry))) {
+    // Cabeçalhos externos não podem produzir Invalid Date/Infinity na fila.
+    // Suspensões acima de sete dias exigem diagnóstico, em vez de encurtar Retry-After.
+    if (
+      !Number.isFinite(retryAfterMs) ||
+      !Number.isFinite(resetMs) ||
+      Math.max(retryAfterMs, resetMs) > 7 * 86400000
+    )
+      throw new IngestionError("INVALID_RETRY_WINDOW", true);
     throw new IngestionError("RATE_LIMIT", false, Math.max(60000, retryAfterMs || 0, resetMs || 0));
   }
   if (status === 401 || status === 403) throw new IngestionError(`HTTP_${status}`, true);

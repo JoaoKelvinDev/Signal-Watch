@@ -23,7 +23,11 @@
     "collect:once": "node --env-file-if-exists=.env --import tsx src/backend/worker/main.ts --once",
     "editorial:process": "node --env-file-if-exists=.env --import tsx scripts/editorial/process.ts",
     "local": "node --env-file-if-exists=.env scripts/local.mjs",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:http:mvp": "node --env-file-if-exists=.env --import tsx scripts/checks/mvp-http.ts",
+    "test:http:scheduled": "node --env-file-if-exists=.env --import tsx scripts/checks/scheduled-http.ts",
+    "check:secrets": "node --env-file-if-exists=.env --import tsx scripts/checks/secrets.ts",
+    "editorial:reprocess": "node --env-file-if-exists=.env --import tsx scripts/editorial/reprocess.ts"
   },
   "overrides": {
     "@esbuild-kit/core-utils": {

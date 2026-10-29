@@ -13,6 +13,14 @@ playwright-report
 .cache
 .codex
 .aws
+.vercel
+.npmrc
+.netrc
+.pgpass
+.pg_service.conf
+.git-credentials
+backups
+logs
 .vscode
 .idea
 *.log

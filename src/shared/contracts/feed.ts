@@ -28,6 +28,7 @@ export type FeedItem = {
   type: string;
   editorialStatus: string;
   companies: string[];
+  topics: string[];
   products: string[];
   version: string | null;
   summary: string | null;

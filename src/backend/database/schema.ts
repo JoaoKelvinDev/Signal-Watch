@@ -37,6 +37,7 @@ export const sources = pgTable(
         "unavailable",
         "pending_credentials",
         "pending_approval",
+        "paused",
       ],
     })
       .notNull()
@@ -53,7 +54,7 @@ export const sources = pgTable(
     index("sources_due_idx").on(t.state, t.nextRunAt),
     check("sources_interval_positive", sql`${t.intervalSeconds} >= 60`),
   ],
-);
+).enableRLS();
 
 export const sourceItems = pgTable(
   "source_items",
@@ -87,7 +88,7 @@ export const sourceItems = pgTable(
     index("source_item_processing_idx").on(t.processingState),
     index("source_item_title_search_idx").using("gin", sql`to_tsvector('simple', ${t.title})`),
   ],
-);
+).enableRLS();
 
 export const events = pgTable(
   "events",
@@ -97,6 +98,10 @@ export const events = pgTable(
     title: text().notNull(),
     category: text().notNull(),
     companies: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    topics: text()
       .array()
       .notNull()
       .default(sql`'{}'::text[]`),
@@ -116,13 +121,15 @@ export const events = pgTable(
     lastChangedAt: utc("last_changed_at").notNull().defaultNow(),
   },
   (t) => [
+    index("events_topics_idx").using("gin", t.topics),
+    index("events_companies_idx").using("gin", t.companies),
     index("events_date_idx").on(t.firstDiscoveredAt),
     uniqueIndex("events_dedup_key_unique").on(t.dedupKey),
     index("events_sort_idx").on(t.sortAt, t.id),
     index("events_title_search_idx").using("gin", sql`to_tsvector('simple', ${t.title})`),
     index("events_status_category_idx").on(t.editorialStatus, t.category),
   ],
-);
+).enableRLS();
 
 export const eventSources = pgTable(
   "event_sources",
@@ -141,7 +148,7 @@ export const eventSources = pgTable(
     uniqueIndex("event_source_unique").on(t.eventId, t.sourceItemId),
     index("event_source_item_idx").on(t.sourceItemId),
   ],
-);
+).enableRLS();
 
 export const eventVersions = pgTable(
   "event_versions",
@@ -156,7 +163,7 @@ export const eventVersions = pgTable(
     createdAt: utc("created_at").notNull().defaultNow(),
   },
   (t) => [index("event_versions_event_idx").on(t.eventId, t.createdAt)],
-);
+).enableRLS();
 
 export const jobs = pgTable(
   "jobs",
@@ -181,7 +188,7 @@ export const jobs = pgTable(
       .on(t.sourceId)
       .where(sql`${t.state} in ('pending', 'running')`),
   ],
-);
+).enableRLS();
 
 export const ingestionRuns = pgTable(
   "ingestion_runs",
@@ -207,7 +214,7 @@ export const ingestionRuns = pgTable(
       .default("running"),
   },
   (t) => [index("ingestion_source_time_idx").on(t.sourceId, t.startedAt)],
-);
+).enableRLS();
 
 export const summaryCache = pgTable(
   "summary_cache",
@@ -222,4 +229,4 @@ export const summaryCache = pgTable(
     createdAt: utc("created_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("summary_cache_key").on(t.inputHash, t.promptVersion, t.model)],
-);
+).enableRLS();

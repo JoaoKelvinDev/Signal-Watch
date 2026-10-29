@@ -20,6 +20,12 @@ next-env.d.ts
 *.key
 *.p12
 *.pfx
+.npmrc
+.netrc
+.pgpass
+.pg_service.conf
+.git-credentials
+backups/
 
 # Banco do workspace, arquivos de execução e backups locais
 .local/
@@ -41,6 +47,7 @@ playwright-report/
 .idea/
 .codex/
 .aws/
+.vercel/
 .DS_Store
 Thumbs.db
 Desktop.ini

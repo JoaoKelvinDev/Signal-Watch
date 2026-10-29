@@ -1,15 +1,20 @@
 import { sql } from "drizzle-orm";
-import { openDatabase } from "../../backend/database/client";
+import { getRequestDatabase } from "../../backend/database/request-client";
+import { createFeedLimiter } from "../feed/rate-limit";
+const allowReadinessRequest = createFeedLimiter(60);
 
 export async function GET() {
-  let database: ReturnType<typeof openDatabase> | undefined;
+  const headers = { "Cache-Control": "no-store" };
+  if (!allowReadinessRequest())
+    return Response.json(
+      { status: "rate_limited" },
+      { status: 429, headers: { ...headers, "Retry-After": "60" } },
+    );
   try {
-    database = openDatabase();
-    await database.db.execute(sql`select id from sources limit 0`);
-    return Response.json({ status: "ready" });
+    const db = getRequestDatabase();
+    await db.execute(sql`select id from sources limit 0`);
+    return Response.json({ status: "ready" }, { headers });
   } catch {
-    return Response.json({ status: "unavailable" }, { status: 503 });
-  } finally {
-    await database?.close();
+    return Response.json({ status: "unavailable" }, { status: 503, headers });
   }
 }

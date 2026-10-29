@@ -8,6 +8,17 @@ import type {
   FeedPage,
   FeedSourceStatus,
 } from "../../shared/contracts/feed";
+import { ItemActions } from "./library";
+import { useLibrary } from "../use-library";
+import {
+  topicLabels,
+  topics,
+  eventTypes,
+  eventTypeLabels,
+  editorialStatuses,
+  editorialStatusLabels,
+} from "../../shared/catalog";
+import { getLibrary, updateLibrary } from "../library-store";
 import { Icon } from "./icons";
 
 type Filters = {
@@ -15,6 +26,15 @@ type Filters = {
   category: "ai" | "all" | "technology";
   q: string;
   source: string;
+  sort?: string;
+  topic?: string;
+  company?: string;
+  type?: string;
+  status?: string;
+  language?: string;
+  origin?: string;
+  from?: string;
+  to?: string;
 };
 const defaults: Filters = { tab: "official", category: "ai", q: "", source: "" };
 
@@ -90,7 +110,10 @@ function NewsCard({ item, index }: { item: FeedItem; index: number }) {
           <span className="eyebrow-separator">/</span>
           <span>{item.category === "ai" ? "Inteligência artificial" : "Tecnologia"}</span>
         </div>
-        <h2 id={`news-${item.id}`}>{item.title}</h2>
+        <h2 id={`news-${item.id}`}>
+          <Link href={`/eventos/${item.id}`}>{item.title}</Link>
+        </h2>
+        <ItemActions item={item} />
         {item.companies.length > 0 && (
           <p className="company-line">
             {item.companies.join(" · ")}
@@ -109,7 +132,7 @@ function NewsCard({ item, index }: { item: FeedItem; index: number }) {
         <div className="card-footer">
           <div className="source-byline">
             <span className={isHn ? "source-monogram hn" : "source-monogram"}>
-              {isHn ? "Y" : "HF"}
+              {isHn ? "Y" : (primary?.name.slice(0, 2).toUpperCase() ?? "GH")}
             </span>
             <span>
               {primary?.name ?? "Origem não informada"}
@@ -199,7 +222,11 @@ function LoadingCards() {
 }
 
 export function RadarFeed() {
-  const [filters, setFilters] = useState<Filters>(defaults);
+  const library = useLibrary();
+  const [filters, setFilters] = useState<Filters>(() => {
+    const saved = typeof window === "undefined" ? null : getLibrary();
+    return { ...defaults, company: saved?.company || undefined, topic: saved?.topic || undefined };
+  });
   const [draft, setDraft] = useState("");
   const [page, setPage] = useState<FeedPage | null>(null);
   const [sourceCatalog, setSourceCatalog] = useState<FeedSourceStatus[]>([]);
@@ -207,7 +234,10 @@ export function RadarFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
-  const [light, setLight] = useState(false);
+  const light = library.theme === "light";
+  const setLight = (value: boolean) => {
+    updateLibrary((current) => ({ ...current, theme: value ? "light" : "dark" }));
+  };
   const activeRequest = useRef<AbortController | null>(null);
 
   const query = (cursor?: string) => {
@@ -218,6 +248,20 @@ export function RadarFeed() {
     });
     if (filters.q) params.set("q", filters.q);
     if (filters.source) params.set("source", filters.source);
+    for (const key of [
+      "sort",
+      "topic",
+      "company",
+      "type",
+      "status",
+      "language",
+      "origin",
+      "from",
+      "to",
+    ] as const) {
+      const value = filters[key];
+      if (value) params.set(key, value);
+    }
     if (cursor) params.set("cursor", cursor);
     return params;
   };
@@ -233,6 +277,20 @@ export function RadarFeed() {
     });
     if (filters.q) params.set("q", filters.q);
     if (filters.source) params.set("source", filters.source);
+    for (const key of [
+      "sort",
+      "topic",
+      "company",
+      "type",
+      "status",
+      "language",
+      "origin",
+      "from",
+      "to",
+    ] as const) {
+      const value = filters[key];
+      if (value) params.set(key, value);
+    }
     fetch(`/api/feed?${params}`, { signal: controller.signal, cache: "no-store" })
       .then(async (response) => {
         if (!response.ok)
@@ -363,6 +421,12 @@ export function RadarFeed() {
             <span>Comunidade</span>
             {isCommunity && <span className="nav-indicator" />}
           </button>
+          <Link className="nav-item" href="/preferencias">
+            Preferências e salvos
+          </Link>
+          <Link className="nav-item" href="/admin">
+            Administração
+          </Link>
           <a className="nav-item" href="#fontes">
             <Icon name="source" />
             <span>Fontes monitoradas</span>
@@ -378,10 +442,10 @@ export function RadarFeed() {
               <span
                 className={source.type === "hacker_news" ? "source-monogram hn" : "source-monogram"}
               >
-                {source.type === "hacker_news" ? "Y" : "HF"}
+                {source.type === "hacker_news" ? "Y" : source.name.slice(0, 2).toUpperCase()}
               </span>
               <div>
-                <strong>{source.type === "hacker_news" ? "Hacker News" : "Transformers"}</strong>
+                <strong>{source.name}</strong>
                 <span>
                   {source.state === "active"
                     ? "Ativa"
@@ -411,7 +475,7 @@ export function RadarFeed() {
             <br />
             <strong>Leitura com contexto.</strong>
           </p>
-          <span className="local-caption">ACESSO LOCAL · SEM CADASTRO</span>
+          <span className="local-caption">FONTES IDENTIFICADAS · SEM CADASTRO</span>
         </div>
       </aside>
 
@@ -423,7 +487,7 @@ export function RadarFeed() {
           </span>
           <button
             className="icon-button"
-            onClick={() => setLight((current) => !current)}
+            onClick={() => setLight(!light)}
             aria-label={light ? "Ativar tema escuro" : "Ativar tema claro"}
           >
             <Icon name={light ? "moon" : "sun"} />
@@ -438,7 +502,7 @@ export function RadarFeed() {
               <h1>
                 Lançamentos,
                 <br />
-                pesquisas e  <span>discussões sobre IA</span>
+                pesquisas e <span>discussões sobre IA</span>
               </h1>
               <p className="intro-description">
                 Lançamentos e discussões, com a origem de cada informação.
@@ -580,6 +644,123 @@ export function RadarFeed() {
               </div>
             </div>
 
+            <details className="advanced-filters">
+              <summary>Filtros avançados</summary>
+              <div className="advanced-grid">
+                <label>
+                  Ordenação
+                  <select
+                    value={filters.sort ?? "recent"}
+                    onChange={(e) => changeFilters({ sort: e.target.value })}
+                  >
+                    <option value="recent">Mais recentes</option>
+                    <option value="relevance">Relevância</option>
+                  </select>
+                </label>
+                <label>
+                  Tema
+                  <select
+                    value={filters.topic ?? ""}
+                    onChange={(e) => changeFilters({ topic: e.target.value || undefined })}
+                  >
+                    <option value="">Todos</option>
+                    {topics.map((topic) => (
+                      <option key={topic} value={topic}>
+                        {topicLabels[topic]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Empresa
+                  <input
+                    maxLength={80}
+                    value={filters.company ?? ""}
+                    onChange={(e) => changeFilters({ company: e.target.value || undefined })}
+                    placeholder="Nome exato, ex.: OpenAI"
+                  />
+                </label>
+                <label>
+                  Tipo
+                  <select
+                    value={filters.type ?? ""}
+                    onChange={(e) => changeFilters({ type: e.target.value || undefined })}
+                  >
+                    <option value="">Todos</option>
+                    {eventTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {eventTypeLabels[type]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Status editorial
+                  <select
+                    value={filters.status ?? ""}
+                    onChange={(e) => changeFilters({ status: e.target.value || undefined })}
+                  >
+                    <option value="">Todos</option>
+                    {editorialStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {editorialStatusLabels[status]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Idioma
+                  <select
+                    value={filters.language ?? ""}
+                    onChange={(e) => changeFilters({ language: e.target.value || undefined })}
+                  >
+                    <option value="">Todos</option>
+                    <option value="pt">Português</option>
+                    <option value="en">Inglês</option>
+                    <option value="unknown">Não informado pela fonte</option>
+                  </select>
+                </label>
+                <label>
+                  Origem
+                  <select
+                    value={filters.origin ?? ""}
+                    onChange={(e) => changeFilters({ origin: e.target.value || undefined })}
+                  >
+                    <option value="">Todas</option>
+                    <option value="official">Oficial</option>
+                    <option value="community">Comunidade</option>
+                  </select>
+                </label>
+                <label>
+                  Publicado a partir de
+                  <input
+                    type="date"
+                    value={filters.from?.slice(0, 10) ?? ""}
+                    onChange={(e) =>
+                      changeFilters({
+                        from: e.target.value ? e.target.value + "T00:00:00-03:00" : undefined,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Publicado até
+                  <input
+                    type="date"
+                    value={filters.to?.slice(0, 10) ?? ""}
+                    onChange={(e) =>
+                      changeFilters({
+                        to: e.target.value ? e.target.value + "T23:59:59.999-03:00" : undefined,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <p>
+                Temas e empresas são classificados por regras sobre metadados. Datas desconhecidas
+                não entram no filtro por publicação. Origem pode diferir do status do evento.
+              </p>
+            </details>
             {filters.q && (
               <div className="search-context">
                 Resultados para <strong>“{filters.q}”</strong>

@@ -1,6 +1,8 @@
 # Radar de IA e Tecnologia
 
-Aplicação local para acompanhar lançamentos de IA e discussões da comunidade, consultar o acervo coletado e verificar a origem e as datas de cada item. O projeto usa dados reais de duas integrações; **não promete cobertura ampla da internet e ainda não é um MVP completo nem um serviço publicado**.
+Aplicação para acompanhar lançamentos de IA e discussões da comunidade, consultar o acervo coletado e verificar a origem e as datas de cada item. Usa dados reais de duas integrações. O banco foi migrado para Supabase; a conexão e a coleta na Vercel ainda dependem da configuração e validação de produção. Não promete cobertura ampla da internet.
+
+Instruções para o projeto existente: [Supabase e Vercel](docs/deployment-supabase-vercel.md). Não enviar senhas no chat ou ao GitHub.
 
 ## Estado atual
 
@@ -11,16 +13,19 @@ Aplicação local para acompanhar lançamentos de IA e discussões da comunidade
 - Coleta independente do navegador, com worker, fila persistente, tentativas, leases recuperáveis e gravação idempotente em PostgreSQL.
 - Classificação editorial conservadora: releases do repositório verificado são apresentadas como anúncios oficiais; Hacker News permanece separado como conteúdo comunitário.
 - Tema claro/escuro, estados de carregamento/erro/vazio e endpoint de prontidão.
+- Filtros avançados por tema, empresa, tipo, idioma, origem, período e status; ordenação por recência ou relevância com cursor.
+- Página `/eventos/{id}` com evidências, cobertura vinculada e histórico. Sem resumo inventado quando faltam informações.
+- `/preferencias` com favoritos, itens lidos, tema e preferências locais, sem cadastro.
+- `/admin` protegido, com cadastro GitHub Releases não verificado, diagnóstico após revisão documental, intervalos, pausa, saúde, quotas e reprocessamento idempotente em lotes.
+- Endpoint POST autenticado `/api/cron/ingest`, com execução limitada para serverless; script de ativação Supabase Cron/Vault, ainda não ativado em produção.
 - Ambiente local e Docker Compose; as validações registradas incluem build, testes, contratos reais das integrações e fluxo de coleta persistido. Consulte [docs/implementation-status.md](docs/implementation-status.md) para escopo e evidências.
 
 ### Ainda pendente
 
 - Mais fontes verificadas e maior cobertura de empresas e produtos.
-- Página própria de evento com cobertura relacionada e histórico editorial navegável.
-- Filtros por empresa, tipo de evento, idioma, período e status editorial.
-- Favoritos, itens lidos e preferências.
-- Painel administrativo autenticado para fontes, saúde e reprocessamento.
-- Implantação pública e validação de operação/backup em produção.
+- Configurar variáveis da Vercel, publicar a revisão aprovada e validar funcionamento real em produção.
+- Ativar e validar Supabase Cron/Vault, incluindo coleta com navegador fechado.
+- Validar backup/restauração conforme o plano Supabase e fazer revisão visual com navegador.
 
 Não há conteúdo de demonstração disfarçado de notícia real. Resumos não são inventados quando os metadados coletados não dão informação suficiente.
 

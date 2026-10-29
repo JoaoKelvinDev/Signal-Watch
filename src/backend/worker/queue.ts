@@ -189,7 +189,7 @@ export async function failJob(db: Database, claim: Claim, cause: unknown): Promi
     await tx
       .update(sources)
       .set({
-        state: error.blocked ? "blocked" : "active",
+        state: error.blocked ? "blocked" : sql`${sources.state}`,
         lastError: error.code,
         nextRunAt: new Date(Date.now() + Math.max(delayMs, claim.source.intervalSeconds * 1000)),
       })

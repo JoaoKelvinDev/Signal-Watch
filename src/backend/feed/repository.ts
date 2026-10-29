@@ -28,6 +28,10 @@ const communityEvidence = sql`exists (
     and s.editorial_level = 'community'
 )`;
 
+// Ranking editorial simples: foco em IA (4), presença de origem primária (2), recência como desempate.
+// Interesse não é inferido: o coletor não persiste votos. Ranking não é confirmação factual.
+const relevance = sql<number>`(case when ${events.category} = 'ai' then 4 else 0 end + case when ${officialEvidence} then 2 else 0 end)`;
+
 function searchCondition(query: string): SQL {
   return sql`(
     to_tsvector('simple', ${events.title}) @@ websearch_to_tsquery('simple', ${query})
@@ -47,6 +51,22 @@ export async function readFeed(db: Database, parameters: FeedParameters): Promis
       else filters.push(sql`not (${officialEvidence}) and (${communityEvidence})`);
       if (parameters.category !== "all") filters.push(eq(events.category, parameters.category));
       if (parameters.q) filters.push(searchCondition(parameters.q));
+      if (parameters.id) filters.push(eq(events.id, parameters.id));
+      if (parameters.topic) filters.push(sql`${parameters.topic} = any(${events.topics})`);
+      if (parameters.company) filters.push(sql`${parameters.company} = any(${events.companies})`);
+      if (parameters.type) filters.push(eq(events.type, parameters.type));
+      if (parameters.status) filters.push(eq(events.editorialStatus, parameters.status));
+      if (parameters.from)
+        filters.push(sql`${events.publishedAt} >= ${parameters.from}::timestamptz`);
+      if (parameters.to) filters.push(sql`${events.publishedAt} <= ${parameters.to}::timestamptz`);
+      if (parameters.language || parameters.origin)
+        filters.push(sql`exists (
+        select 1 from event_sources es join source_items si on si.id = es.source_item_id
+        join sources s on s.id = si.source_id
+        where es.event_id = ${events.id} and si.processing_state <> 'removed'
+        ${parameters.language ? sql`and coalesce(si.language, 'unknown') = ${parameters.language}` : sql``}
+        ${parameters.origin ? sql`and s.editorial_level = ${parameters.origin}` : sql``}
+      )`);
       if (parameters.source) {
         filters.push(sql`exists (
         select 1 from event_sources es
@@ -58,19 +78,29 @@ export async function readFeed(db: Database, parameters: FeedParameters): Promis
       }
       if (parameters.cursor) {
         const cursor = decodeCursor(parameters.cursor, parameters);
-        filters.push(sql`(
+        const chronological = sql`(
         ${events.sortAt} < ${cursor.at}::timestamptz
         or (${events.sortAt} = ${cursor.at}::timestamptz and ${events.id} < ${cursor.id}::uuid)
-      )`);
+      )`;
+        filters.push(
+          parameters.sort === "relevance"
+            ? sql`(${relevance} < ${cursor.rank} or (${relevance} = ${cursor.rank} and ${chronological}))`
+            : chronological,
+        );
       }
       const records = await tx
         .select({
           event: events,
+          rank: relevance,
           cursorTime: sql<string>`to_char(${events.sortAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
         })
         .from(events)
         .where(and(...filters))
-        .orderBy(desc(events.sortAt), desc(events.id))
+        .orderBy(
+          ...(parameters.sort === "relevance" ? [desc(relevance)] : []),
+          desc(events.sortAt),
+          desc(events.id),
+        )
         .limit(parameters.pageSize + 1);
       const page = records.slice(0, parameters.pageSize);
       const evidence = page.length
@@ -170,6 +200,7 @@ export async function readFeed(db: Database, parameters: FeedParameters): Promis
                   ? "community_report"
                   : event.editorialStatus,
               companies: event.companies,
+              topics: event.topics,
               products: event.products,
               version: event.version,
               summary: event.summary,
@@ -182,7 +213,12 @@ export async function readFeed(db: Database, parameters: FeedParameters): Promis
         }),
         nextCursor:
           records.length > parameters.pageSize && last
-            ? encodeCursor(last.cursorTime, last.event.id, parameters)
+            ? encodeCursor(
+                last.cursorTime,
+                last.event.id,
+                parameters,
+                parameters.sort === "relevance" ? last.rank : undefined,
+              )
             : null,
         sources: sourceStatuses,
         generatedAt: new Date().toISOString(),

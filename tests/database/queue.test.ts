@@ -79,6 +79,17 @@ afterAll(async () => {
 });
 
 describe("fila e ingestão em PostgreSQL real", () => {
+  it("retry de coleta em andamento não reativa fonte pausada pelo administrador", async () => {
+    const source = await addSource();
+    await scheduleDue(db);
+    const claim = await claimOrThrow();
+    await db.update(sources).set({ state: "paused" }).where(eq(sources.id, source.id));
+    await failJob(db, claim, new IngestionError("TIMEOUT"));
+    expect((await db.select().from(sources).where(eq(sources.id, source.id)))[0].state).toBe(
+      "paused",
+    );
+    expect(await claimNext(db)).toBeNull();
+  });
   it("agendadores e workers concorrentes reservam somente um job por fonte", async () => {
     await addSource();
     const scheduled = await Promise.all([scheduleDue(db), scheduleDue(db)]);

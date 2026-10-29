@@ -1,15 +1,11 @@
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
+import { databaseConfig } from "./config";
 
 export function openDatabase(url = process.env.DATABASE_URL) {
-  if (!url) throw new Error("DATABASE_URL é obrigatória no servidor.");
-  const pool = new Pool({
-    connectionString: url,
-    max: 5,
-    connectionTimeoutMillis: 5000,
-    options: "-c timezone=UTC",
-  });
+  const pool = new Pool(databaseConfig(url));
+  pool.on("error", () => console.error("DATABASE_IDLE_CONNECTION_INTERRUPTED"));
   const db = drizzle(pool, { schema });
   return { db, close: () => pool.end() };
 }

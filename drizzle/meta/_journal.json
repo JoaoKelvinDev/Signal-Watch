@@ -15,6 +15,13 @@
       "when": 1793202366251,
       "tag": "0001_sharp_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793293635545,
+      "tag": "0002_round_kulan_gath",
+      "breakpoints": true
     }
   ]
 }
