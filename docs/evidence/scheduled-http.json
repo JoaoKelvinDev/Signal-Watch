@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-29T17:28:16.703Z",
+  "environment": "local-production-build",
+  "trigger": "authenticated-http-post",
+  "processed": 2,
+  "failed": 0,
+  "results": [
+    {
+      "source": "hacker-news",
+      "status": "success",
+      "inserted": 25,
+      "duplicates": 0,
+      "notModified": false,
+      "truncated": true
+    },
+    {
+      "source": "huggingface-transformers",
+      "status": "success",
+      "inserted": 2,
+      "duplicates": 1,
+      "notModified": false,
+      "truncated": true
+    }
+  ]
+}

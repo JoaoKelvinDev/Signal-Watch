@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-29T18:29:06.277Z",
+  "environment": "local-production-build",
+  "admin": {
+    "unauthenticated": 401,
+    "login": 200,
+    "csrf": 403,
+    "pauseResume": true,
+    "reprocess": 200,
+    "logout": 200
+  },
+  "event": {
+    "id": "b666f044-d09f-4cdd-a1f0-71cb55f5e2e7",
+    "evidenceCount": 1,
+    "history": true
+  },
+  "cronWithoutSecretHeader": 401,
+  "pages": ["/", "/admin", "/preferencias", "/eventos/[id]"],
+  "privateEnv": 404,
+  "browserInteractions": "not-tested"
+}

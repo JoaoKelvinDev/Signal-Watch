@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-29",
+  "timezone": "America/Sao_Paulo",
+  "unitTests": { "passed": 82, "failed": 0 },
+  "databaseTests": { "passed": 31, "failed": 0, "environment": "radar_test local descartavel" },
+  "lint": "passed",
+  "typecheck": "passed",
+  "productionBuild": "passed",
+  "migrationCheck": "passed; no schema drift generated",
+  "onlineContracts": ["github_releases", "hacker_news"],
+  "authenticatedCollection": {
+    "environment": "local-production-build",
+    "sources": 2,
+    "inserted": 27,
+    "duplicates": 1,
+    "failed": 0
+  },
+  "npmAuditKnownVulnerabilities": 0,
+  "supabase": {
+    "project": "Signal-Watch",
+    "migrations": 3,
+    "rlsTables": 8,
+    "migratedEvents": 126,
+    "identityComparison": "matched",
+    "publicGrantsExamined": 0
+  },
+  "browserGui": "not-tested; no connected browsers",
+  "productionDeployment": "pending environment setup and owner approval",
+  "productionScheduler": "not activated",
+  "backupRestore": "not verified in production",
+  "scope": "Testes executados não garantem ausência de todas as vulnerabilidades. Conferir os relatórios de HTTP, migração, coleta e segredos desta revisão."
+}

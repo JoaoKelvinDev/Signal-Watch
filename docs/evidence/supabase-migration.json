@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-29T17:32:00.102Z",
+  "project": "Signal-Watch",
+  "tables": {
+    "jobs": {
+      "hash": "7babb96ce71821f78c524a62cc5e2d82",
+      "count": 13
+    },
+    "events": {
+      "hash": "5d9e96b728aa6d1f8e8783d8c6c1c47a",
+      "count": 126
+    },
+    "sources": {
+      "hash": "4b9d6f8cb851614277da32cf8622de82",
+      "count": 2
+    },
+    "source_items": {
+      "hash": "583f9030de40fed775b5b75451cfee0c",
+      "count": 126
+    },
+    "event_sources": {
+      "hash": "0ba85c8d0c7426e1cf18b60e625a57de",
+      "count": 126
+    },
+    "summary_cache": {
+      "hash": "d41d8cd98f00b204e9800998ecf8427e",
+      "count": 0
+    },
+    "event_versions": {
+      "hash": "d41d8cd98f00b204e9800998ecf8427e",
+      "count": 0
+    },
+    "ingestion_runs": {
+      "hash": "cb5eb33af1703e01b6024f106574a6ce",
+      "count": 13
+    }
+  },
+  "identitiesMatch": true,
+  "schemaMigrations": 3,
+  "rlsTables": 8,
+  "anonymousAndAuthenticatedGrants": 0,
+  "securityAdvisors": {
+    "critical": 0,
+    "warning": 0,
+    "info": {
+      "rlsEnabledNoPolicy": 8,
+      "reason": "Acesso exclusivamente pelo servidor; nenhuma política pública intencionalmente."
+    }
+  },
+  "productionRuntime": "blocked-pending-server-environment-and-deployment",
+  "cron": "not-activated",
+  "localDataPreserved": true
+}

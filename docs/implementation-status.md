@@ -1,6 +1,62 @@
-# Estado da implementação — 28/10/2026
+# Estado da implementação — 29/10/2026
 
-## Revisão atual: reorganização validada após aprovação
+## Revisão atual: segurança antes do commit
+
+Revisão completa do inventário versionável com foco em backend/API, credenciais, scripts e implantação. Relatório: [security-review-2026-10-29.md](security-review-2026-10-29.md).
+
+Corrigidos envio nativo de senha por GET, disputas de estado entre administração/worker, multiplicação de pools por requisição, falta de limite no readiness, corpo administrativo sem prazo, exclusão de `.vercel` no Docker, REVOKE amplo no bootstrap, cabeçalhos HTTP ausentes, origem/cookie atrás de proxy e janelas de quota inválidas.
+
+Validação atual: **93 testes de unidade + 34 de banco, 127 aprovados**; lint, tipos, build, migrações e HTTP aprovados. Auditoria npm sem vulnerabilidades conhecidas. Scanner cobre arquivos versionáveis, bundle e 139 blobs do histórico, sem achados nos padrões examinados. Supabase conferido somente em leitura; RLS e grants continuam restritos.
+
+Pendente: testar novamente o contexto/imagem Docker (daemon desligado), validação de produção/GUI, backup e limites operacionais descritos no relatório. Não houve commit, push, deploy ou alteração remota nesta revisão. Aguardar autorização do proprietário após a análise dos resultados.
+
+## Histórico: Supabase e fluxos do MVP
+
+Escopo autorizado: migrar para o Supabase exclusivo Signal-Watch, adaptar para Vercel Hobby e concluir os recursos pendentes do MVP. Banco remoto migrado. O proprietário confirmou o cadastro de `DATABASE_URL`, `ADMIN_PASSWORD` e `CRON_SECRET` em Production na Vercel; os valores não foram compartilhados. A conexão e os fluxos remotos serão verificados após publicar a revisão. Não declarar o produto 100% funcional em produção.
+
+Implementado nesta revisão:
+
+- Supabase com as três migrações Drizzle e ledger preservado. Oito tabelas com RLS e sem grants para `anon`/`authenticated`; conexão somente pelo backend, TLS verificado e pool reduzido para serverless.
+- Cópia preservando IDs e timestamps: duas fontes, 126 itens/eventos/evidências e 13 execuções. Identidades das oito tabelas comparadas com a exportação, sem divergência; zero vínculos órfãos. Banco local preservado.
+- Endpoint POST de coleta autenticado com segredo, bloqueio de previews, orçamento de execução e fila/leases existentes. Worker local reutiliza a mesma orquestração. Script Supabase Cron/pg_net/Vault preparado, sem agendamento remoto ativo.
+- Filtros completos, classificação de temas por metadados, idioma desconhecido preservado, período por publicação e ordenação por relevância documentada. Cursor vincula todos os filtros.
+- Página de evento com evidências, cobertura vinculada e histórico, sem expor JSON bruto ou inventar resumo.
+- Favoritos, lidos, preferências e tema persistidos no navegador; sem cadastro/sincronização.
+- Administração com senha de servidor, sessão assinada, cookies protegidos e CSRF. Cadastro GitHub não verificado, ativação após revisão documental e teste real, configuração de intervalos, pausa, saúde/quotas e reprocessamento paginado/idempotente.
+- `.gitignore` inclui metadados locais da Vercel; arquivos privados de teste e exportações permanecem ignorados. Nenhuma dependência nova, commit, push ou redeploy nesta revisão.
+
+Validação desta revisão:
+
+| Verificação                           | Resultado                                                                                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Testes offline                        | 82 aprovados                                                                                                                               |
+| PostgreSQL local descartável          | 31 aprovados; filtros, RLS, detalhe, ranking, cadastro/admin e idempotência, além das regressões anteriores                                |
+| Contratos online                      | GitHub Releases e Hacker News aprovados com respostas reais                                                                                |
+| Coleta pelo novo endpoint autenticado | Duas fontes, 27 itens novos, uma duplicata, nenhuma falha; execução independente da interface                                              |
+| HTTP no build de produção local       | Login, CSRF, pausa/retomada, reprocessamento, evento, preferências/admin, logout, cron sem Bearer e `.env` protegido                       |
+| Feed HTTP após coleta                 | Três releases oficiais, 150 itens comunitários, 30 páginas sem repetir eventos, pesquisa/filtros e 150 links validados                     |
+| Auditoria npm                         | Zero vulnerabilidades conhecidas na consulta executada                                                                                     |
+| Migração Supabase                     | Três migrações registradas, oito tabelas com RLS, zero grants públicos examinados e identidades correspondentes                            |
+| Advisor Supabase de segurança         | Sem warnings/erros; oito informações de RLS sem política intencionais para acesso exclusivo pelo servidor                                  |
+| Segredos e Gitignore                  | Nenhum achado nos padrões/valores examinados nos arquivos versionáveis e bundle; `.env`, exportação, segredos locais e `.vercel` ignorados |
+
+Durante a validação, corrigida a verificação CSRF para origem pública atrás do proxy Next/Vercel e cookie Secure em produção. Também foi impedido que pausar/retomar uma fonte contornasse o estado de bloqueio; reprocessamento ganhou continuação por cursor. O teste HTTP anterior tinha expectativa de um texto antigo da interface; substituída por verificações de idioma e região principal acessível.
+
+Evidências: [relatório final](evidence/cloud-validation.json), [migração Supabase](evidence/supabase-migration.json), [HTTP MVP](evidence/mvp-http.json), [ciclo autenticado](evidence/scheduled-http.json), [checagem de segredos](evidence/cloud-secrets-check.json). Lint, tipos, build e formatação aprovados ao finalizar. Revisões anteriores abaixo são históricas, não o estado atual.
+
+Bloqueado/pendente para aceite em produção:
+
+1. Cadastro de `DATABASE_URL`, `ADMIN_PASSWORD` e `CRON_SECRET` em Production confirmado pelo proprietário. Validar os valores indiretamente pelo funcionamento da aplicação após o deploy, sem revelar credenciais. Origem pública automática ou `APP_ORIGIN` conforme domínio utilizado.
+2. Após revisão/aprovação dos resultados, enviar código e publicar no projeto Vercel existente; nenhum push/redeploy foi feito pelo agente.
+3. Configurar Vault, ativar o agendamento preparado e verificar ciclos reais na Vercel, inclusive com navegador fechado e reinício. O teste local do endpoint não comprova agendamento remoto.
+4. Verificar backup/restauração e consumo real dos planos. Custos não garantidos como gratuitos.
+5. Revisão visual, teclado e interações reais do navegador não executadas: nenhum navegador CUA conectado nesta sessão. HTTP e testes de armazenamento não substituem essa verificação.
+
+Integrações operacionais verificadas: GitHub Releases e HN. RSS de blogs, Reddit, arXiv, provedores licenciados e LLM continuam desativados/não implementados; não são simulados. HN é sinal comunitário, e termos/direitos de exibição e retenção devem continuar sendo revisados pelo operador. A deduplicação é conservadora por URL/versão; não há agrupamento semântico de URLs distintas. Títulos sem tradução determinística permanecem originais, identificados como metadados.
+
+Próximo passo: obter a confirmação do proprietário para enviar a revisão validada à `main` de `JoaoKelvinDev/Signal-Watch`, o que pode acionar o deploy automático, e então seguir a validação remota de [deployment-supabase-vercel.md](deployment-supabase-vercel.md).
+
+## Histórico: reorganização validada após aprovação
 
 O proprietário aprovou a execução de testes e as correções após a reorganização. A estrutura `app/frontend/api/backend/shared` foi validada sem criar novos serviços, dependências, endpoints ou migrações. O site local permanece em **http://127.0.0.1:3000**.
 
